@@ -15,7 +15,7 @@ The dataset we selected is FBI Crime Data which is on the Snowflake Marketplace 
 
 
 ## Question 1: South Regional Analysis
- How does crime in Georgia compare to neighboring states over time? 
+## How does crime in Georgia compare to neighboring states over time? 
 <img width="1556" height="696" alt="image" src="https://github.com/user-attachments/assets/5bbe7177-e01d-4120-8de7-f8df0f103502" />
 
 Florida’s crime volume heavily skews the overall regional statistics, Florida had much greater volatility in its trend as we see much larger rises and falls in its trend line when compared to the other states. Georgia and North Carolina seem to trend very similarly in  the graph implying that the crime rates in each state are exposed to similar vulnerabilities.
@@ -35,6 +35,7 @@ Prompts:
 “I'd like help with refining my Snowflake Dashboard that I'm creating. This is Component 2 in the Group Project 2 Print out. You are meant to take this Python code provided and generate an improved version that I can use for the assignment. AI assistance is permitted for this portion if the modifications that you make are cataloged. I'd like you to work through all the changes in the best way possible to make the cleanest and best looking dashboard and then after completing your changes list out all the components that you changed and what you changed about them. Make the dashboard simple and easy to understand while still making it look professional. Use a University of Georgia theme for the dashboard. There are two questions that are being answered match the looks of the graphs to keep them cohesive. Generate appropriate table names and axis names for the graphs. Determine if there is a better graph type that is better suited at presenting the data. The questions are "How does crime in Georgia compare to neighboring states over time? How much regional crime does the state with the most (Florida) account for compared to the other states in the southeast?". The code for the base version is, …”
 “I have a couple improvements that I think could help it look a lot better. The Gray header text is a little hard to read on the background color and it would be great if you made that text darker. The lines that represent the other states stick to the theme very well but the colors are too similar for many of the states and it would be great if you could make them more distinct even if that means shifting away from the theme.”
 
+## Dataset Manipulation:
 1. Structural & Boilerplate Cleanup
 Removed Snowsight Artifacts: Stripped out the auto-generated @st.fragment decorators, hardcoded timestamps, and refresh buttons.
 Simplified Execution: Replaced the complex asynchronous job creation and duplicate column renaming logic with a standard, highly efficient session.sql().to_pandas() flow.
@@ -79,6 +80,7 @@ The “Historical Analysis Filters” utilizes a multi select drop down that all
 Prompt:
 “I have to do the same thing for a new dashboard that I'm creating. I would like for you to help me by remembering the requirements that I set for the previous one you made. The new questions are "How do crime rates in Georgia compare decade by decade? How did the top 3 crime rates change by year for the decade with the most crime?" The new code is…”
 
+## Dataset Manipulation
 1. Structural & Boilerplate Cleanup
 Removed Snowsight Artifacts: Stripped out the auto-generated @st.fragment decorators, hardcoded timestamps (e.g., "2026-04-27 4:42pm"), and the manual refresh buttons.
 Simplified Execution: Replaced the complex asynchronous job creation and duplicate column renaming blocks with standard, clean session.sql().to_pandas() functions wrapped in Streamlit's @st.cache_data for better performance.
