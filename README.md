@@ -8,3 +8,56 @@
 4. Johnathan Lu [@johnathanlu](https://www.github.com/johnathanlu)
 5. Madison Jin [@madisonajin-bot](https://github.com/madisonajin-bot)
 6. Maxwell Alton Buckingham [@mabuckingham](https://github.com/mabuckingham)
+
+## Description of Dataset (FBI)
+
+The dataset we selected is FBI Crime Data which is on the Snowflake Marketplace and it contains historical data regarding crime across the United States. We chose this specific dataset because it contains large scale data especially useful for detailed analysis. It is a relational database with multiple tables including offense level data, summary statistics, and geography information. It contains hundreds of thousands of rows though due to all of the accumulated information for all 50 states for many years too. Key columns include variables such as year, state / region, offense type, crime counts, rates per 100,000 people, and crime category. The crime counts and year are stored in the integer data, the rates power 100,000 people are stored in Decimal format, and everything else is string data in the VARCHAR format. We proceeded to use these for SQL based querying, as shown later.
+
+
+## Question 1: South Regional Analysis
+
+###How does crime in Georgia compare to neighboring states over time? 
+<img width="1556" height="696" alt="image" src="https://github.com/user-attachments/assets/5bbe7177-e01d-4120-8de7-f8df0f103502" />
+
+Florida’s crime volume heavily skews the overall regional statistics, Florida had much greater volatility in its trend as we see much larger rises and falls in its trend line when compared to the other states. Georgia and North Carolina seem to trend very similarly in  the graph implying that the crime rates in each state are exposed to similar vulnerabilities.
+
+###How much regional crime does the state with the most (Florida) account for compared to the other states in the southeast?
+
+<img width="1785" height="816" alt="image" src="https://github.com/user-attachments/assets/63fe2cde-5b21-4f97-86c6-ddea6e6fd67e" />
+
+Florida accounts for almost half of the crime that is committed in the South Eastern United States. This stacked composition reveals a massive imbalance in regional safety. From an operational standpoint this would indicate that the FBI should place more of their resources in Florida to have the greatest impact on regional safety.
+
+###Interactive Element:
+
+The Regional Analysis Filter allows you to select a year range to analyze by implementing a double sided slider. It applies to both the line chart and the bar chart. Viewing data over 40 years can obscure trends that happen along shorter periods of time. You can adjust to look at the lifetime of different trends and compare that against policy and other factors that might be better shown over a shorter period of time. In the line chart you can see a sharp drop off, like in 2018,  or increase, as seen in the early 90’s,  much better when narrowing the time scope. For the bar graph you can see better the weight that Florida took up better when narrowing the years. With this you can compare better the weight of Florida from time periods that are not directly adjacent. This is a great tool to be able to narrow in on political or economic eras. 
+
+###AI Implementation:
+Prompts: 
+“I'd like help with refining my Snowflake Dashboard that I'm creating. This is Component 2 in the Group Project 2 Print out. You are meant to take this Python code provided and generate an improved version that I can use for the assignment. AI assistance is permitted for this portion if the modifications that you make are cataloged. I'd like you to work through all the changes in the best way possible to make the cleanest and best looking dashboard and then after completing your changes list out all the components that you changed and what you changed about them. Make the dashboard simple and easy to understand while still making it look professional. Use a University of Georgia theme for the dashboard. There are two questions that are being answered match the looks of the graphs to keep them cohesive. Generate appropriate table names and axis names for the graphs. Determine if there is a better graph type that is better suited at presenting the data. The questions are "How does crime in Georgia compare to neighboring states over time? How much regional crime does the state with the most (Florida) account for compared to the other states in the southeast?". The code for the base version is, …”
+“I have a couple improvements that I think could help it look a lot better. The Gray header text is a little hard to read on the background color and it would be great if you made that text darker. The lines that represent the other states stick to the theme very well but the colors are too similar for many of the states and it would be great if you could make them more distinct even if that means shifting away from the theme.”
+
+1. Structural & Boilerplate Cleanup
+Removed Snowsight Artifacts: Stripped out the auto-generated @st.fragment decorators, hardcoded timestamps, and refresh buttons.
+Simplified Execution: Replaced the complex asynchronous job creation and duplicate column renaming logic with a standard, highly efficient session.sql().to_pandas() flow.
+
+2. Data Querying & Processing
+Consolidated SQL Queries: Instead of running two separate, complex SQL queries, the code now runs a single, efficient query to fetch the base state-level data.
+Pandas Integration: Shifted the data manipulation for Question 2 (calculating Florida's share versus the rest of the states) out of SQL and into Python using Pandas pivot() and melt() functions. This reduces compute load on Snowflake and prepares the data perfectly for stacked bar charts.
+
+3. Theming & Accessibility
+Custom CSS: Injected custom HTML/CSS via st.markdown() to override default Streamlit styling. This established the University of Georgia theme by forcing headers to UGA Red (#BA0C2F) and setting the background to white.
+High-Contrast Text: Updated the CSS and added global Altair configurations (configure_title, configure_axis, configure_legend) to ensure all chart text, axes, and paragraph elements render in solid, high-contrast black for readability.
+
+4. Interactivity
+Added Dynamic Filtering: Implemented a sidebar using st.sidebar.slider to act as an interactive date range selector.
+Analytical Value: This slider dynamically filters the underlying Pandas dataframe before it is passed to the charts, fulfilling the requirement for an interactive element that fundamentally changes the data displayed.
+
+5. Chart Enhancements (Altair Integration)
+Chart 1 (Time Trends): Replaced the original st.scatter_chart with an Altair Line Chart (mark_line()), which is the required chart type for displaying time trends.
+Chart 1 Colors: Implemented a custom color scale. Georgia was mapped to UGA Red and Florida to Black to fit the theme, while the remaining states were explicitly assigned standard, highly distinct colors (Blue, Orange, Green, Purple) to fix readability issues.
+Chart 2 (Proportions): Replaced the generic st.bar_chart with an Altair Stacked Bar Chart (mark_bar()). This visually stacked "Florida" on top of "Other States Total" to accurately answer the question regarding Florida's share of the regional volume.
+Chart Tooltips & Labels: Added explicit titles, customized axis labels (with a -45 degree angle for the years to prevent overlapping), and interactive tooltips to both Altair charts.
+Syntax Correction: Formatted the Altair array structures vertically to prevent line-truncation issues that were causing "unterminated string literal" syntax errors.
+
+
+
