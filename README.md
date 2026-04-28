@@ -59,6 +59,67 @@ Chart 2 (Proportions): Replaced the generic st.bar_chart with an Altair Stacked 
 Chart Tooltips & Labels: Added explicit titles, customized axis labels (with a -45 degree angle for the years to prevent overlapping), and interactive tooltips to both Altair charts.
 Syntax Correction: Formatted the Altair array structures vertically to prevent line-truncation issues that were causing "unterminated string literal" syntax errors.
 
+## SQL
+
+SELECT
+    YEAR(ts.DATE)::String AS year,
+    geo.GEO_NAME AS state,
+    SUM(ts.VALUE) AS total_crimes
+FROM SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.FBI_CRIME_TIMESERIES ts
+JOIN SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.GEOGRAPHY_INDEX geo
+    ON ts.GEO_ID = geo.GEO_ID
+WHERE geo.LEVEL = 'State'
+  AND geo.GEO_NAME IN (
+        'Georgia',
+        'Alabama',
+        'Florida',
+        'South Carolina',
+        'Tennessee',
+        'North Carolina'
+  )
+GROUP BY year, state
+ORDER BY year, state;
+This pulls total crimes per year for 6 southeastern states (Georgia, Alabama, Florida, South Carolina, Tennessee, and North Carolina), grouped by year and state — letting you compare overall crime trends side by side across the region over time.
+
+WITH yearly AS (
+    SELECT
+        YEAR(ts.DATE)::String AS year,
+        geo.GEO_NAME AS state,
+        SUM(ts.VALUE) AS total_crimes
+    FROM SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.FBI_CRIME_TIMESERIES ts
+    JOIN SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.GEOGRAPHY_INDEX geo
+        ON ts.GEO_ID = geo.GEO_ID
+    WHERE geo.LEVEL = 'State'
+      AND geo.GEO_NAME IN (
+            'Florida',
+            'Georgia',
+            'Alabama',
+            'South Carolina',
+            'Tennessee',
+            'North Carolina'
+      )
+    GROUP BY year, state
+),
+
+totals AS (
+    SELECT
+        year,
+        SUM(total_crimes) AS regional_total,
+        SUM(CASE WHEN state = 'Florida' THEN total_crimes ELSE 0 END) AS florida_total
+    FROM yearly
+    GROUP BY year
+)
+
+SELECT
+    year,
+    florida_total,
+    regional_total,
+    ROUND(florida_total / regional_total * 100, 2) AS florida_share_pct
+FROM totals
+ORDER BY year;
+
+It calculates Florida's share of total crime across 6 southeastern states, year by year — first summing each state's crimes annually, then computing what percentage of the entire region's crime Florida alone accounts for each year, letting you see whether Florida's contribution to regional crime is growing, shrinking, or staying steady over time.
+
 ## Question 2: Georgia Historical Analysis
 
 ## How do crime rates in Georgia compare decade by decade? 
@@ -102,4 +163,52 @@ Tooltips & Labels: Added explicit titles, customized axis labels, and interactiv
 5. Theming & Accessibility
 Custom CSS Theme: Re-applied the custom HTML/CSS block to ensure the background is white, headers are UGA Red, and paragraph text is solid black.
 High-Contrast Charts: Added the global Altair configurations (configure_title, configure_axis, configure_legend) to ensure all chart text renders in solid black, matching the readability improvements from the first dashboard.
+
+## SQL
+
+Part 1
+SELECT
+    (FLOOR(YEAR(ts.DATE) / 10) * 10)::STRING AS decade,
+    ts.VARIABLE_NAME                             AS offense_category,
+    SUM(ts.VALUE)                                AS total_crimes
+FROM  SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.FBI_CRIME_TIMESERIES  ts
+JOIN  SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.GEOGRAPHY_INDEX        geo
+      ON ts.GEO_ID = geo.GEO_ID
+WHERE geo.LEVEL     = 'State'
+  AND geo.GEO_NAME  = 'Georgia'
+GROUP BY decade, ts.VARIABLE_NAME
+ORDER BY decade, total_crimes DESC; 
+
+This pulls Georgia state-level FBI crime data, groups every year into its decade (1990s, 2000s, etc.), sums up crimes by type for each decade, and returns the results sorted by decade with the highest-volume crime types listed first — giving you a decade-by-decade breakdown of crime categories across Georgia.
+
+Part 2
+SELECT
+    YEAR(ts.DATE)::STRING AS year,
+    ts.VARIABLE_NAME AS crime_category,
+    SUM(ts.VALUE) AS total_crimes
+FROM SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.FBI_CRIME_TIMESERIES ts
+JOIN SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.GEOGRAPHY_INDEX geo
+    ON ts.GEO_ID = geo.GEO_ID
+JOIN (
+    SELECT
+        ts.VARIABLE_NAME
+    FROM SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.FBI_CRIME_TIMESERIES ts
+    JOIN SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.GEOGRAPHY_INDEX geo
+        ON ts.GEO_ID = geo.GEO_ID
+    WHERE geo.LEVEL = 'State'
+      AND geo.GEO_NAME = 'Georgia'
+      AND YEAR(ts.DATE) BETWEEN 1990 AND 1999
+    GROUP BY ts.VARIABLE_NAME
+    ORDER BY SUM(ts.VALUE) DESC
+    LIMIT 3
+) top_categories
+    ON ts.VARIABLE_NAME = top_categories.VARIABLE_NAME
+WHERE geo.LEVEL = 'State'
+  AND geo.GEO_NAME = 'Georgia'
+  AND YEAR(ts.DATE) BETWEEN 1990 AND 1999
+GROUP BY year, ts.VARIABLE_NAME
+ORDER BY year, crime_category;
+
+It finds the top 3 most common crime types in Georgia during the 1990s, then tracks those same 3 categories year by year across the decade — giving you a line chart where each line follows one crime category from 1990 to 1999, making it easy to spot trends and compare how those top crimes changed over time.
+
 
